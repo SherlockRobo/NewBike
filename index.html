@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>公路车配件计算器</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: #f0f0f0;
+      font-weight: bold;
+    }
+    input[type="number"] {
+      width: 100px;
+      padding: 5px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .category {
+      background-color: #e9ecef;
+      font-weight: bold;
+    }
+    .summary {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #e9f7ef;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+    .price-per-g {
+      background-color: #f8f9fa;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-right: 10px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .actions {
+      margin: 20px 0;
+      text-align: center;
+    }
+    .hidden {
+      display: none;
+    }
+    .preset-selector {
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #f0f8ff;
+      border-radius: 8px;
+    }
+    select {
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      margin-right: 10px;
+    }
+    .high-value {
+      color: #d9534f;
+    }
+    .medium-value {
+      color: #f0ad4e;
+    }
+    .low-value {
+      color: #5cb85c;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>公路车配件计算器</h1>
+    
+    <div class="preset-selector">
+      <h3>预设配置</h3>
+      <select id="presetSelect">
+        <option value="">选择预设配置</option>
+        <option value="lightweight">轻量化配置</option>
+        <option value="budget">经济实惠配置</option>
+        <option value="sworks">S-Works高端配置</option>
+      </select>
+      <button onclick="loadPreset()">加载预设</button>
+      <button onclick="saveCurrentAsPreset()">保存当前配置为预设</button>
+    </div>
+
+    <table id="bikePartsTable">
+      <thead>
+        <tr>
+          <th>分类</th>
+          <th>部件</th>
+          <th>型号</th>
+          <th>重量 (g)</th>
+          <th>价格 (¥)</th>
+          <th>¥/克</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- 车架组 -->
+        <tr class="category">
+          <td rowspan="6">车架组</td>
+          <td>车架</td>
+          <td><input type="text" id="frameModel" value="S-Works SL8 RTP 54"></td>
+          <td><input type="number" id="frameWeight" value="655"></td>
+          <td><input type="number" id="framePrice" value="34000"></td>
+          <td class="price-per-g" id="framePricePerG">51.9</td>
+        </tr>
+        <tr>
+          <td>前叉</td>
+          <td><input type="text" id="forkModel" value="S-Works SL8 RTP 54"></td>
+          <td><input type="number" id="forkWeight" value="380"></td>
+          <td><input type="number" id="forkPrice" value="0"></td>
+          <td class="price-per-g" id="forkPricePerG">0.0</td>
+        </tr>
+        <tr>
+          <td>前变速器</td>
+          <td><input type="text" id="frontDerailleurModel" value="Shimano Dura-Ace"></td>
+          <td><input type="number" id="frontDerailleurWeight" value="90"></td>
+          <td><input type="number" id="frontDerailleurPrice" value="0"></td>
+          <td class="price-per-g" id="frontDerailleurPricePerG">0.0</td>
+        </tr>
+        <tr>
+          <td>后变速器</td>
+          <td><input type="text" id="rearDerailleurModel" value="Shimano Dura-Ace"></td>
+          <td><input type="number" id="rearDerailleurWeight" value="217"></td>
+          <td><input type="number" id="rearDerailleurPrice" value="0"></td>
+          <td class="price-per-g" id="rearDerailleurPricePerG">0.0</td>
+        </tr>
+        <tr>
+          <td>中轴</td>
+          <td><input type="text" id="bbModel" value="Ceramic Speed BSA 30"></td>
+          <td><input type="number" id="bbWeight" value="84"></td>
+          <td><input type="number" id="bbPrice" value="1000"></td>
+          <td class="price-per-g" id="bbPricePerG">11.9</td>
+        </tr>
+        <tr>
+          <td>变速杆 x2</td>
+          <td><input type="text" id="leverModel" value="Shimano Dura-Ace"></td>
+          <td><input type="number" id="leverWeight" value="368"></td>
+          <td><input type="number" id="leverPrice" value="0"></td>
+          <td class="price-per-g" id="leverPricePerG">0.0</td>
+        </tr>
+
+        <!-- 传动系统 -->
+        <tr class="category">
+          <td rowspan="6">传动系统</td>
+          <td>曲柄</td>
+          <td><input type="text" id="crankModel" value="THM Carbones Clavicula SE w/ PM"></td>
+          <td><input type="number" id="crankWeight" value="310"></td>
+          <td><input type="number" id="crankPrice" value="15000"></td>
+          <td class="price-per-g" id="crankPricePerG">48.4</td>
+        </tr>
+        <tr>
+          <td>大牙盘</td>
+          <td><input type="text" id="chainringLModel" value="Carbon Ti X-Carbon EVO 5 Arms 52 x 110"></td>
+          <td><input type="number" id="chainringLWeight" value="99"></td>
+          <td><input type="number" id="chainringLPrice" value="1700"></td>
+          <td class="price-per-g" id="chainringLPricePerG">17.2</td>
+        </tr>
+        <tr>
+          <td>小牙盘</td>
+          <td><input type="text" id="chainringSModel" value="Carbon Ti X-Carbon 5 Arms 36 x 110"></td>
+          <td><input type="number" id="chainringSWeight" value="33"></td>
+          <td><input type="number" id="chainringSPrice" value="1700"></td>
+          <td class="price-per-g" id="chainringSPricePerG">51.5</td>
+        </tr>
+        <tr>
+          <td>飞轮</td>
+          <td><input type="text" id="cassetteModel" value="Sixweel 11-33T"></td>
+          <td><input type="number" id="cassetteWeight" value="209"></td>
+          <td><input type="number" id="cassettePrice" value="2400"></td>
+          <td class="price-per-g" id="cassettePricePerG">11.5</td>
+        </tr>
+        <tr>
+          <td>链条</td>
+          <td><input type="text" id="chainModel" value="Shimano M9100"></td>
+          <td><input type="number" id="chainWeight" value="249"></td>
+          <td><input type="number" id="chainPrice" value="250"></td>
+          <td class="price-per-g" id="chainPricePerG">1.0</td>
+        </tr>
+        <tr>
+          <td>电池及线材</td>
+          <td><input type="text" id="batteryModel" value="Shimano"></td>
+          <td><input type="number" id="batteryWeight" value="73"></td>
+          <td><input type="number" id="batteryPrice" value="0"></td>
+          <td class="price-per-g" id="batteryPricePerG">0.0</td>
+        </tr>
+
+        <!-- 刹车系统 -->
+        <tr class="category">
+          <td rowspan="5">刹车系统</td>
+          <td>刹车卡钳 x2</td>
+          <td><input type="text" id="brakeCalModel" value="Trickstuff Piccola C22"></td>
+          <td><input type="number" id="brakeCalWeight" value="175"></td>
+          <td><input type="number" id="brakeCalPrice" value="0"></td>
+          <td class="price-per-g" id="brakeCalPricePerG">0.0</td>
+        </tr>
+        <tr>
+          <td>前刹车碟</td>
+          <td><input type="text" id="brakeRotorFModel" value="Trickstuff Daechle Disc UL 160 w/ Adapter"></td>
+          <td><input type="number" id="brakeRotorFWeight" value="104"></td>
+          <td><input type="number" id="brakeRotorFPrice" value="0"></td>
+          <td class="price-per-g" id="brakeRotorFPricePerG">0.0</td>
+        </tr>
+        <tr>
+          <td>后刹车碟</td>
+          <td><input type="text" id="brakeRotorRModel" value="Trickstuff Daechle Disc UL 140 w/ Adapter"></td>
+          <td><input type="number" id="brakeRotorRWeight" value="89"></td>
+          <td><input type="number" id="brakeRotorRPrice" value="0"></td>
+          <td class="price-per-g" id="brakeRotorRPricePerG">0.0</td>
+        </tr>
+        <tr>
+          <td>刹车皮 x2</td>
+          <td><input type="text" id="brakePadsModel" value="TRICKSTUFF Brake Pads 830 Power-A Resin"></td>
+          <td><input type="number" id="brakePadsWeight" value="22"></td>
+          <td><input type="number" id="brakePadsPrice" value="0"></td>
+          <td class="price-per-g" id="brakePadsPricePerG">0.0</td>
+        </tr>
+
+        <!-- 轮组 -->
+        <tr class="category">
+          <td rowspan="5">轮组</td>
+          <td>轮组</td>
+          <td><input type="text" id="wheelSetModel" value="Scope Artech 4"></td>
+          <td><input type="number" id="wheelSetWeight" value="1120"></td>
+          <td><input type="number" id="wheelSetPrice" value="24000"></td>
+          <td class="price-per-g" id="wheelSetPricePerG">21.4</td>
+        </tr>
+        <tr>
+          <td>前轮胎</td>
+          <td><input type="text" id="tyreFModel" value="Panaracer Agilest Fast 25c"></td>
+          <td><input type="number" id="tyreFWeight" value="230"></td>
+          <td><input type="number" id="tyreFPrice" value="300"></td>
+          <td class="price-per-g" id="tyreFPricePerG">1.3</td>
+        </tr>
+        <tr>
+          <td>后轮胎</td>
+          <td><input type="text" id="tyreRModel" value="Panaracer Agilest Fast 28c"></td>
+          <td><input type="number" id="tyreRWeight" value="250"></td>
+          <td><input type="number" id="tyreRPrice" value="300"></td>
+          <td class="price-per-g" id="tyreRPricePerG">1.2</td>
+        </tr>
+        <tr>
+          <td>内胎 x2</td>
+          <td><input type="text" id="innerTubeModel" value="Ridenow"></td>
+          <td><input type="number" id="innerTubeWeight" value="38"></td>
+          <td><input type="number" id="innerTubePrice" value="138"></td>
+          <td class="price-per-g" id="innerTubePricePerG">3.6</td>
+        </tr>
+        <tr>
+          <td>快拆 x2</td>
+          <td><input type="text" id="thruAxleModel" value="3D Printed"></td>
+          <td><input type="number" id="thruAxleWeight" value="27"></td>
+          <td><input type="number" id="thruAxlePrice" value="0"></td>
+          <td class="price-per-g" id="thruAxlePricePerG">0.0</td>
+        </tr>
+
+        <!-- 座舱 -->
+        <tr class="category">
+          <td rowspan="2">座舱</td>
+          <td>把立</td>
+          <td><input type="text" id="cockpitModel" value="Darimo Nexum 380-100"></td>
+          <td><input type="number" id="cockpitWeight" value="214"></td>
+          <td><input type="number" id="cockpitPrice" value="7000"></td>
+          <td class="price-per-g" id="cockpitPricePerG">32.7</td>
+        </tr>
+        <tr>
+          <td>把带</td>
+          <td><input type="text" id="barTapeModel" value="Lightweight"></td>
+          <td><input type="number" id="barTapeWeight" value="55"></td>
+          <td><input type="number" id="barTapePrice" value="0"></td>
+          <td class="price-per-g" id="barTapePricePerG">0.0</td>
+        </tr>
+
+        <!-- 座垫组 -->
+        <tr class="category">
+          <td rowspan="4">座垫组</td>
+          <td>座管</td>
+          <td><input type="text" id="seatPostModel" value="Darimo T1 Aero 15 mm Offset"></td>
+          <td><input type="number" id="seatPostWeight" value="110"></td>
+          <td><input type="number" id="seatPostPrice" value="2800"></td>
+          <td class="price-per-g" id="seatPostPricePerG">25.5</td>
+        </tr>
+        <tr>
+          <td>座管夹</td>
+          <td><input type="text" id="seatPostClampModel" value="Specialized"></td>
+          <td><input type="number" id="seatPostClampWeight" value="10"></td>
+          <td><input type="number" id="seatPostClampPrice" value="100"></td>
+          <td class="price-per-g" id="seatPostClampPricePerG">10.0</td>
+        </tr>
+        <tr>
+          <td>座垫</td>
+          <td><input type="text" id="saddleModel" value="Berks Lupina"></td>
+          <td><input type="number" id="saddleWeight" value="74"></td>
+          <td><input type="number" id="saddlePrice" value="2100"></td>
+          <td class="price-per-g" id="saddlePricePerG">28.4</td>
+        </tr>
+        <tr>
+          <td>座垫夹</td>
+          <td><input type="text" id="saddleClampModel" value="Specialized"></td>
+          <td><input type="number" id="saddleClampWeight" value="15"></td>
+          <td><input type="number" id="saddleClampPrice" value="50"></td>
+          <td class="price-per-g" id="saddleClampPricePerG">3.3</td>
+        </tr>
+
+        <!-- 配件 -->
+        <tr class="category">
+          <td rowspan="5">配件</td>
+          <td>脚踏</td>
+          <td><input type="text" id="pedalsModel" value="Time Xpro 12 SL"></td>
+          <td><input type="number" id="pedalsWeight" value="174"></td>
+          <td><input type="number" id="pedalsPrice" value="2500"></td>
+          <td class="price-per-g" id="pedalsPricePerG">14.4</td>
+        </tr>
+        <tr>
+          <td>变速器挂钩</td>
+          <td><input type="text" id="derailleurHangerModel" value="3D Printed"></td>
+          <td><input type="number" id="derailleurHangerWeight" value="13"></td>
+          <td><input type="number" id="derailleurHangerPrice" value="0"></td>
+          <td class="price-per-g" id="derailleurHangerPricePerG">0.0</td>
+        </tr>
+        <tr>
+          <td>码表支架</td>
+          <td><input type="text" id="computerMountModel" value="3D Printed"></td>
+          <td><input type="number" id="computerMountWeight" value="13"></td>
+          <td><input type="number" id="computerMountPrice" value="0"></td>
+          <td class="price-per-g" id="computerMountPricePerG">0.0</td>
+        </tr>
+        <tr>
+          <td>水壶架 x2</td>
+          <td><input type="text" id="bottleCageModel" value="Tune Wasserträger 2.0"></td>
+          <td><input type="number" id="bottleCageWeight" value="20"></td>
+          <td><input type="number" id="bottleCagePrice" value="0"></td>
+          <td class="price-per-g" id="bottleCagePricePerG">0.0</td>
+        </tr>
+        <tr>
+          <td>车头碗组</td>
+          <td><input type="text" id="headsetsModel" value="Ceramic Speed SLT OHD"></td>
+          <td><input type="number" id="headsetsWeight" value="43"></td>
+          <td><input type="number" id="headsetsPrice" value="0"></td>
+          <td class="price-per-g" id="headsetsPricePerG">0.0</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="actions">
+      <button onclick="calculateTotals()">计算总计</button>
+      <button onclick="resetForm()">重置表单</button>
+      <button onclick="exportToCSV()">导出为CSV</button>
+    </div>
+
+    <div class="summary" id="summary">
+      <h3>总计</h3>
+      <p>总重量: <span id="totalWeight">5538</span> g</p>
+      <p>总价格: ¥<span id="totalPrice">95188</span></p>
+      <p>平均 ¥/克: <span id="avgPricePerG">17.2</span></p>
+    </div>
+  </div>
+
+  <script>
+    // 计算总计
+    function calculateTotals() {
+      let totalWeight = 0;
+      let totalPrice = 0;
+      
+      // 获取所有重量输入框
+      const weightInputs = document.querySelectorAll('input[id$="Weight"]');
+      const priceInputs = document.querySelectorAll('input[id$="Price"]');
+      
+      // 计算总重量
+      weightInputs.forEach(input => {
+        const weight = parseFloat(input.value) || 0;
+        totalWeight += weight;
+      });
+      
+      // 计算总价格
+      priceInputs.forEach(input => {
+        const price = parseFloat(input.value) || 0;
+        totalPrice += price;
+      });
+      
+      // 计算每个部件的Price/克并更新显示
+      const allParts = document.querySelectorAll('input[id$="Weight"]');
+      allParts.forEach(part => {
+        const baseId = part.id.replace('Weight', '');
+        const weightValue = parseFloat(part.value) || 0;
+        const priceValue = parseFloat(document.getElementById(baseId + 'Price').value) || 0;
+        const pricePerGElement = document.getElementById(baseId + 'PricePerG');
+        
+        if (weightValue > 0) {
+          const pricePerG = (priceValue / weightValue).toFixed(1);
+          pricePerGElement.textContent = pricePerG;
+          
+          // 根据价值比添加颜色标识
+          if (parseFloat(pricePerG) > 30) {
+            pricePerGElement.className = 'price-per-g high-value';
+          } else if (parseFloat(pricePerG) > 10) {
+            pricePerGElement.className = 'price-per-g medium-value';
+          } else if (parseFloat(pricePerG) > 0) {
+            pricePerGElement.className = 'price-per-g low-value';
+          } else {
+            pricePerGElement.className = 'price-per-g';
+          }
+        } else {
+          pricePerGElement.textContent = '0.0';
+          pricePerGElement.className = 'price-per-g';
+        }
+      });
+      
+      // 更新总计显示
+      document.getElementById('totalWeight').textContent = totalWeight.toFixed(0);
+      document.getElementById('totalPrice').textContent = totalPrice.toFixed(0);
+      
+      // 计算平均Price/克
+      const avgPricePerG = totalWeight > 0 ? (totalPrice / totalWeight).toFixed(1) : '0.0';
+      document.getElementById('avgPricePerG').textContent = avgPricePerG;
+    }
+    
+    // 重置表单
+    function resetForm() {
+      if (confirm('确定要重置所有数据吗？')) {
+        const allInputs = document.querySelectorAll('input');
+        allInputs.forEach(input => {
+          if (input.type === 'number') {
+            input.value = '0';
+          } else {
+            input.value = '';
+          }
+        });
+        
+        const allPricePerGs = document.querySelectorAll('.price-per-g');
+        allPricePerGs.forEach(element => {
+          element.textContent = '0.0';
+          element.className = 'price-per-g';
+        });
+        
+        document.getElementById('totalWeight').textContent = '0';
+        document.getElementById('totalPrice').textContent = '0';
+        document.getElementById('avgPricePerG').textContent = '0.0';
+      }
+    }
+    
+    // 导出为CSV
+    function exportToCSV() {
+      let csvContent = "分类,部件,型号,重量 (g),价格 (¥),¥/克\n";
+      
+      const rows = document.querySelectorAll('#bikePartsTable tbody tr');
+      let currentCategory = '';
+      
+      rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        
+        // 检查是否是分类行
+        if (row.classList.contains('category')) {
+          currentCategory = cells[0].textContent;
+        }
+        
+        const part = cells[1].textContent;
+        const model = cells[2].querySelector('input').value;
+        const weight = cells[3].querySelector('input').value;
+        const price = cells[4].querySelector('input').value;
+        const pricePerG = cells[5].textContent;
+        
+        csvContent += `"${currentCategory}","${part}","${model}","${weight}","${price}","${pricePerG}"\n`;
+      });
+      
+      // 添加总计行
+      csvContent += `"总计","","","${document.getElementById('totalWeight').textContent}","${document.getElementById('totalPrice').textContent}","${document.getElementById('avgPricePerG').textContent}"\n`;
+      
+      // 创建下载链接
+      const encodedUri = encodeURI('data:text/csv;charset=utf-8,' + csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', '公路车配件清单_' + new Date().toISOString().slice(0, 10) + '.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    
+    // 加载预设
+    function loadPreset() {
+      const selectedPreset = document.getElementById('presetSelect').value;
+      if (!selectedPreset) return;
+      
+      // 这里可以定义不同的预设配置
+      const presets = {
+        lightweight: {
+          frameModel: 'S-Works SL8 RTP 54',
+          frameWeight: '655',
+          framePrice: '34000',
+          // 其他轻量化配置...
+          wheelSetModel: 'Lightweight Meilenstein',
+          wheelSetWeight: '980',
+          wheelSetPrice: '32000',
+          // 更多配置...
+        },
+        budget: {
+          frameModel: 'Giant TCR Advanced Pro',
+          frameWeight: '850',
+          framePrice: '12000',
+          // 其他经济配置...
+          wheelSetModel: 'DT Swiss P1800',
+          wheelSetWeight: '1650',
+          wheelSetPrice: '4500',
+          // 更多配置...
+        },
+        sworks: {
+          // 默认已经是S-Works配置，可以保持不变或做一些微调
+        }
+      };
+      
+      // 应用预设配置
+      const preset = presets[selectedPreset];
+      if (preset) {
+        Object.keys(preset).forEach(key => {
+          const element = document.getElementById(key);
+          if (element) {
+            element.value = preset[key];
+          }
+        });
+        
+        // 重新计算总计
+        calculateTotals();
+      }
+    }
+    
+    // 保存当前配置为预设
+    function saveCurrentAsPreset() {
+      const presetName = prompt('请输入预设名称:');
+      if (!presetName) return;
+      
+      // 收集当前所有输入值
+      const currentPreset = {};
+      const allInputs = document.querySelectorAll('input[type="text"], input[type="number"]');
+      allInputs.forEach(input => {
+        currentPreset[input.id] = input.value;
+      });
+      
+      // 保存到本地存储
+      try {
+        const savedPresets = JSON.parse(localStorage.getItem('bikePresets')) || {};
+        savedPresets[presetName] = currentPreset;
+        localStorage.setItem('bikePresets', JSON.stringify(savedPresets));
+        
+        // 添加到下拉菜单
+        const option = document.createElement('option');
+        option.value = presetName;
+        option.textContent = presetName;
+        document.getElementById('presetSelect').appendChild(option);
+        
+        alert('预设 "' + presetName + '" 已保存！');
+      } catch (e) {
+        alert('保存失败: ' + e.message + '\n(可能是浏览器不支持本地存储或隐私模式下运行)');
+      }
+    }
+    
+    // 加载自定义预设
